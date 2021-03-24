@@ -3,4 +3,5 @@
     <string name="enter_ip_address">Enter IP Address</string>
     <string name="enter_port">Enter Port</string>
     <string name="enable_sending">Enable Sending</string>
+    <string name="standard">default</string>
 </resources>
