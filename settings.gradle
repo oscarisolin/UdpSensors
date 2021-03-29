@@ -1,2 +1,4 @@
+include ':libstreaming'
 include ':app'
 rootProject.name = "UdpSensors"
+include ':libstreaming'

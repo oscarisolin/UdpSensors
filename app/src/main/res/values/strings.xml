@@ -3,4 +3,8 @@
     <string name="enter_ip_address">Enter IP Address</string>
     <string name="enter_port">Enter Port</string>
     <string name="enable_sending">Enable Sending</string>
+    <string name="standard">default</string>
+    <string name="_192_168_0_8">192.168.0.8</string>
+    <string name="_1234">1234</string>
+    <string name="_5000">5000</string>
 </resources>
