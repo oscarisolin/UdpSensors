@@ -77,7 +77,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
     private SensorManager sensorManager;
     private final float[] accelerometerReading = new float[3];
-    private final float[] gyroReading = new float[3];
+    private final float[] gyroReading = new float[4];
     private Sensor accelerometer;
     private Sensor gyro;
 
@@ -88,6 +88,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private TextView gyro_x;
     private TextView gyro_y;
     private TextView gyro_z;
+    private TextView gyro_w;
 
     private SurfaceView mSurfaceView;
     private InetAddress udpAddress;
@@ -123,6 +124,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         gyro_x = findViewById((R.id.gyro_x));
         gyro_y = findViewById((R.id.gyro_y));
         gyro_z = findViewById((R.id.gyro_z));
+        gyro_w = findViewById((R.id.gyro_w));
 
         SessionBuilder.getInstance()
                 .setSurfaceView(mSurfaceView)
@@ -139,8 +141,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             EditText streamingPort = findViewById(R.id.EnterStreamingPort);
 
             if (isChecked){
-                sensorManager.registerListener(MainActivity.this,accelerometer,SensorManager.SENSOR_DELAY_NORMAL);
-                sensorManager.registerListener(MainActivity.this,gyro,SensorManager.SENSOR_DELAY_NORMAL);
+                sensorManager.registerListener(MainActivity.this,accelerometer,SensorManager.SENSOR_DELAY_GAME);
+                sensorManager.registerListener(MainActivity.this,gyro,SensorManager.SENSOR_DELAY_GAME);
                 Log.d("SENSORS", "Started Listener");
 
                 SharedPreferences.Editor editor = PreferenceManager.getDefaultSharedPreferences(this).edit();
@@ -161,8 +163,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
 
             }else{
-                sensorManager.unregisterListener(MainActivity.this);
-                sensorManager.unregisterListener(MainActivity.this);
+                sensorManager.unregisterListener(MainActivity.this, accelerometer);
+                sensorManager.unregisterListener(MainActivity.this, gyro);
                 Log.d("SENSORS", "Stopped Listener");
                 MainActivity.this.stopService(cameraRtsp);
                 Log.d("RTSP CAMERA", "Stopped RTSP Server");
@@ -228,6 +230,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             gyro_x.setText(String.valueOf(gyroReading[0]));
             gyro_y.setText(String.valueOf(gyroReading[1]));
             gyro_z.setText(String.valueOf(gyroReading[2]));
+            gyro_w.setText(String.valueOf(gyroReading[3]));
 
             JSONObject jsobj = new JSONObject();
             String jsonMsg;
@@ -240,6 +243,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 jsobj.put("rotx",gyroReading[0]);
                 jsobj.put("roty",gyroReading[1]);
                 jsobj.put("rotz",gyroReading[2]);
+                jsobj.put("rotw",gyroReading[3]);
             } catch (JSONException e) {
                 e.printStackTrace();
             }
