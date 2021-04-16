@@ -77,11 +77,17 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
     private SensorManager sensorManager;
     private final float[] accelerometerReading = new float[3];
+    private final float[] gyroReading = new float[3];
     private Sensor accelerometer;
+    private Sensor gyro;
 
     private TextView accel_y;
     private TextView accel_z;
     private TextView accel_x;
+
+    private TextView gyro_x;
+    private TextView gyro_y;
+    private TextView gyro_z;
 
     private SurfaceView mSurfaceView;
     private InetAddress udpAddress;
@@ -108,10 +114,15 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
         Switch enable_udp_switch = findViewById(R.id.enable_udp);
         sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
-        accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+        accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_LINEAR_ACCELERATION);
+        gyro = sensorManager.getDefaultSensor(Sensor.TYPE_GAME_ROTATION_VECTOR);
         accel_y = findViewById(R.id.accel_y);
         accel_z = findViewById(R.id.accel_z);
         accel_x = findViewById(R.id.accel_x);
+
+        gyro_x = findViewById((R.id.gyro_x));
+        gyro_y = findViewById((R.id.gyro_y));
+        gyro_z = findViewById((R.id.gyro_z));
 
         SessionBuilder.getInstance()
                 .setSurfaceView(mSurfaceView)
@@ -129,6 +140,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
             if (isChecked){
                 sensorManager.registerListener(MainActivity.this,accelerometer,SensorManager.SENSOR_DELAY_NORMAL);
+                sensorManager.registerListener(MainActivity.this,gyro,SensorManager.SENSOR_DELAY_NORMAL);
                 Log.d("SENSORS", "Started Listener");
 
                 SharedPreferences.Editor editor = PreferenceManager.getDefaultSharedPreferences(this).edit();
@@ -149,6 +161,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
 
             }else{
+                sensorManager.unregisterListener(MainActivity.this);
                 sensorManager.unregisterListener(MainActivity.this);
                 Log.d("SENSORS", "Stopped Listener");
                 MainActivity.this.stopService(cameraRtsp);
@@ -179,7 +192,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     @Override
     public void onSensorChanged(SensorEvent event) {
 
-        if (event.sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
+        if (event.sensor.getType() == Sensor.TYPE_LINEAR_ACCELERATION) {
             System.arraycopy(event.values, 0, accelerometerReading,
                     0, accelerometerReading.length);
 
@@ -187,10 +200,46 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             accel_y.setText(String.valueOf(accelerometerReading[1]));
             accel_z.setText(String.valueOf(accelerometerReading[2]));
 
+            JSONObject jsobj = new JSONObject();
+            String jsonMsg;
+            saender = new Sender();
+
             try {
-                jsobj.put("x",accelerometerReading[0]);
-                jsobj.put("y",accelerometerReading[1]);
-                jsobj.put("z",accelerometerReading[2]);
+                jsobj.put("type","acceleration");
+                jsobj.put("timestamp",event.timestamp);
+                jsobj.put("ax",accelerometerReading[0]);
+                jsobj.put("ay",accelerometerReading[1]);
+                jsobj.put("az",accelerometerReading[2]);
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+
+            jsonMsg = jsobj.toString();
+            saender.update(udpAddress.getHostAddress(), udpPort, jsonMsg);
+            Thread mythread = new Thread(saender);
+            mythread.start();
+
+        }
+
+        if (event.sensor.getType() == Sensor.TYPE_GAME_ROTATION_VECTOR) {
+            System.arraycopy(event.values, 0, gyroReading,
+                    0, gyroReading.length);
+
+            gyro_x.setText(String.valueOf(gyroReading[0]));
+            gyro_y.setText(String.valueOf(gyroReading[1]));
+            gyro_z.setText(String.valueOf(gyroReading[2]));
+
+            JSONObject jsobj = new JSONObject();
+            String jsonMsg;
+            saender = new Sender();
+
+
+            try {
+                jsobj.put("type","gyro");
+                jsobj.put("timestamp",event.timestamp);
+                jsobj.put("rotx",gyroReading[0]);
+                jsobj.put("roty",gyroReading[1]);
+                jsobj.put("rotz",gyroReading[2]);
             } catch (JSONException e) {
                 e.printStackTrace();
             }
